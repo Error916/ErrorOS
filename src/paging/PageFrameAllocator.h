@@ -1,9 +1,9 @@
 #pragma once
 #include <stdint.h>
 #include <stddef.h>
-#include "efiMemory.h"
-#include "Bitmap.h"
-#include "memory.h"
+#include "../efiMemory.h"
+#include "../Bitmap.h"
+#include "../memory.h"
 
 typedef struct {
 	Bitmap* PageBitmap;
@@ -26,3 +26,5 @@ static void ReservePage(PageFrameAllocator* pfa, void* address);
 static void ReservePages(PageFrameAllocator* pfa, void* address, uint64_t pageCount);
 static void UnreservePage(PageFrameAllocator* pfa, void* address);
 static void UnreservePages(PageFrameAllocator* pfa, void* address, uint64_t pageCount);
+
+extern PageFrameAllocator GlobalAllocator;

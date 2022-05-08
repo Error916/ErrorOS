@@ -4,7 +4,10 @@
 #include "efiMemory.h"
 #include "memory.h"
 #include "Bitmap.h"
-#include "PageFrameAllocator.h"
+#include "paging/PageFrameAllocator.h"
+#include "paging/PageMapIndexer.h"
+#include "paging/PageTableManager.h"
+#include "paging/paging.h"
 
 typedef struct {
 	FrameBuffer* framebuffer;
@@ -26,54 +29,31 @@ void _start(BootInfo* bootinfo){
 	uint64_t mMapEntries = bootinfo->mMapSize / bootinfo->mMapDescSize;
 
 	Bitmap bitmap = {0, NULL};
-	PageFrameAllocator newAllocator;
-	newAllocator.PageBitmap = &bitmap;
-	ReadEFIMemoryMap(&newAllocator, bootinfo->mMap, bootinfo->mMapSize, bootinfo->mMapDescSize);
+	GlobalAllocator.PageBitmap = &bitmap;
+	ReadEFIMemoryMap(&GlobalAllocator, bootinfo->mMap, bootinfo->mMapSize, bootinfo->mMapDescSize);
 
 	uint64_t kernelSize = (uint64_t)&_KernelEnd - (uint64_t)&_KernelStart;
 	uint64_t kernelPages = (uint64_t)kernelSize / 4096 + 1;
-	LockPages(&newAllocator, &_KernelStart, kernelPages);
+	LockPages(&GlobalAllocator, &_KernelStart, kernelPages);
 
-	Print(&newRenderer, "Free RAM: ");
-	Print(&newRenderer, uto_string(GetFreeRAM() / 1024));
-	Print(&newRenderer, " KB");
-	newRenderer.CursorPosition->X = 0;
-	newRenderer.CursorPosition->Y += 16;
+	PageTable* PML4 = (PageTable*)RequestPage(&GlobalAllocator);
+	memset(PML4, 0, 0x1000);
+	PageTableManager pageTableManager;
+	PageTableManagerConst(&pageTableManager, PML4);
 
-	Print(&newRenderer, "Lock RAM: ");
-	Print(&newRenderer, uto_string(GetUsedRAM() / 1024));
-	Print(&newRenderer, " KB");
-	newRenderer.CursorPosition->X = 0;
-	newRenderer.CursorPosition->Y += 16;
-
-	Print(&newRenderer, "Reserved RAM: ");
-	Print(&newRenderer, uto_string(GetReservedRAM() / 1024));
-	Print(&newRenderer, " KB");
-	newRenderer.CursorPosition->X = 0;
-	newRenderer.CursorPosition->Y += 16;
-
-	for(int t = 0; t < 20; ++t){
-		void* address = RequestPage(&newAllocator);
-		Print(&newRenderer, u64to_hstring((uint64_t)address));
-		newRenderer.CursorPosition->X = 0;
-		newRenderer.CursorPosition->Y += 16;
+	for(uint64_t t = 0; t < GetMemorySize(bootinfo->mMap, mMapEntries, bootinfo->mMapDescSize); t+=0x1000){
+		MapMemory(&pageTableManager, (void*)t, (void*)t);
 	}
 
-	/* Print(&newRenderer, uto_string(GetMemorySize(bootinfo->mMap, mMapEntries, bootinfo->mMapDescSize))); */
+	uint64_t fbBase = (uint64_t)bootinfo->framebuffer->BaseAddress;
+	uint64_t fbSize = (uint64_t)bootinfo->framebuffer->BufferSize + 0x1000; // overshoot for securrity
+	for(uint64_t t = fbBase; t < fbBase + fbSize; t+=4096){
+		MapMemory(&pageTableManager, (void*)t, (void*)t);
+	}
 
-	/* for(int i = 0; i < mMapEntries; ++i){ */
-	/* 	EFI_MEMORY_DESCRIPTOR* desc = (EFI_MEMORY_DESCRIPTOR*)((uint64_t)bootinfo->mMap + (i * bootinfo->mMapDescSize)); */
-	/* 	newRenderer.CursorPosition->X = 0; */
-	/* 	newRenderer.CursorPosition->Y += 16; */
-	/* 	Print(&newRenderer, EFI_MEMORY_TYPE_STRINGS[desc->type]); */
-	/* 	newRenderer.Color = 0xffff00ff; */
-	/* 	Print(&newRenderer, " "); */
-	/* 	Print(&newRenderer, uto_string(desc->numPages * 4096 / 1024)); */
-	/* 	Print(&newRenderer, " KB"); */
-	/* 	newRenderer.Color = 0xffffffff; */
-	/* } */
+	asm ("mov %0, %%cr3" : : "r" (PML4));
 
-
+	Print(&newRenderer, "In new page map! :)");
 
 	return ;
 }
