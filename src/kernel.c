@@ -22,10 +22,7 @@ extern uint64_t _KernelEnd;
 
 void _start(BootInfo* bootinfo){
 
-	Point CursorPosition = {0, 0};
-	BasicRenderer newRenderer;
-	BasicRendererConstructor(&newRenderer, &CursorPosition, bootinfo->framebuffer, bootinfo->psf1_font);
-
+	/* START prepare Memory */
 	uint64_t mMapEntries = bootinfo->mMapSize / bootinfo->mMapDescSize;
 
 	Bitmap bitmap = {0, NULL};
@@ -47,13 +44,29 @@ void _start(BootInfo* bootinfo){
 
 	uint64_t fbBase = (uint64_t)bootinfo->framebuffer->BaseAddress;
 	uint64_t fbSize = (uint64_t)bootinfo->framebuffer->BufferSize + 0x1000; // overshoot for securrity
+	LockPages(&GlobalAllocator, (void*)fbBase, fbSize / 0x1000 + 1);
 	for(uint64_t t = fbBase; t < fbBase + fbSize; t+=4096){
 		MapMemory(&pageTableManager, (void*)t, (void*)t);
 	}
 
 	asm ("mov %0, %%cr3" : : "r" (PML4));
 
-	Print(&newRenderer, "In new page map! :)");
+	/* END prepare Memory */
 
-	return ;
+	/* START Graphycs */
+
+	memset(bootinfo->framebuffer->BaseAddress, 0, bootinfo->framebuffer->BufferSize); // Clean the screen to black
+	Point CursorPosition = {0, 0};
+	BasicRenderer newRenderer;
+	BasicRendererConstructor(&newRenderer, &CursorPosition, bootinfo->framebuffer, bootinfo->psf1_font);
+
+	/* END Graphycs */
+
+	/* START Testing */
+
+	Print(&newRenderer, "Kernel Initialize Successfully");
+
+	/* END Testing */
+
+	while(true);
 }

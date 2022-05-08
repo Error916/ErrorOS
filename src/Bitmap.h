@@ -9,4 +9,4 @@ typedef struct {
 } Bitmap;
 
 bool GetBitmap(Bitmap* bitmap, uint64_t index);
-void SetBitmap(Bitmap* bitmap, uint64_t index, bool value);
+bool SetBitmap(Bitmap* bitmap, uint64_t index, bool value);
