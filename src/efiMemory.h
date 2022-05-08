@@ -3,7 +3,7 @@
 
 typedef struct {
 	uint32_t type;
-	void* phyAddr;
+	void* physAddr;
 	void* virtAddr;
 	uint64_t numPages;
 	uint64_t attribs;
