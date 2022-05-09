@@ -8,6 +8,7 @@
 #include "paging/PageMapIndexer.h"
 #include "paging/PageTableManager.h"
 #include "paging/paging.h"
+#include "gdt/gdt.h"
 
 typedef struct {
 	FrameBuffer* framebuffer;
@@ -21,6 +22,13 @@ extern uint64_t _KernelStart;
 extern uint64_t _KernelEnd;
 
 void _start(BootInfo* bootinfo){
+
+	/* START GDT transfer*/
+	GDTDescriptor gdtDescriptor;
+	gdtDescriptor.Size = sizeof(GDT) - 1;
+	gdtDescriptor.Offset = (uint64_t)&DefaultGDT;
+	LoadGDT(&gdtDescriptor);
+	/* END GDT transfer*/
 
 	/* START prepare Memory */
 	uint64_t mMapEntries = bootinfo->mMapSize / bootinfo->mMapDescSize;
@@ -50,16 +58,13 @@ void _start(BootInfo* bootinfo){
 	}
 
 	asm ("mov %0, %%cr3" : : "r" (PML4));
-
 	/* END prepare Memory */
 
 	/* START Graphycs */
-
 	memset(bootinfo->framebuffer->BaseAddress, 0, bootinfo->framebuffer->BufferSize); // Clean the screen to black
 	Point CursorPosition = {0, 0};
 	BasicRenderer newRenderer;
 	BasicRendererConstructor(&newRenderer, &CursorPosition, bootinfo->framebuffer, bootinfo->psf1_font);
-
 	/* END Graphycs */
 
 	/* START Testing */
