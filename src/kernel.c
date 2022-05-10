@@ -76,17 +76,27 @@ void _start(BootInfo* bootinfo){
 	idtr.Limit =  0x0fff;
 	idtr.Offset = (uint64_t)RequestPage(&GlobalAllocator);
 
-	IDTDescEntry* int_PageFault = (IDTDescEntry*)(idtr.Offset + 0xE * sizeof(IDTDescEntry));
+	IDTDescEntry* int_PageFault = (IDTDescEntry*)(idtr.Offset + 0xe * sizeof(IDTDescEntry));
 	SetOffsetIDT(int_PageFault, (uint64_t)PageFault_Handler);
 	int_PageFault->type_attr = IDT_TA_InterruptGate;
 	int_PageFault->selector = 0x08;
 
+	IDTDescEntry* int_DoubleFault = (IDTDescEntry*)(idtr.Offset + 0x8 * sizeof(IDTDescEntry));
+	SetOffsetIDT(int_DoubleFault, (uint64_t)DoubleFault_Handler);
+	int_DoubleFault->type_attr = IDT_TA_InterruptGate;
+	int_DoubleFault->selector = 0x08;
+
+	IDTDescEntry* int_GPFault = (IDTDescEntry*)(idtr.Offset + 0xd * sizeof(IDTDescEntry));
+	SetOffsetIDT(int_GPFault, (uint64_t)GPFault_Handler);
+	int_GPFault->type_attr = IDT_TA_InterruptGate;
+	int_GPFault->selector = 0x08;
+
 	asm("lidt %0" : : "m" (idtr));
 	/* END interrupts*/
 
-	/* START Testing */
+	Print(GlobalRenderer, "Kernel Initialize Succesfully");
 
-	Print(GlobalRenderer, "Kernel Initialize Successfully");
+	/* START Testing */
 
 	/* END Testing */
 

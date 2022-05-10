@@ -35,3 +35,22 @@ void Print(BasicRenderer* basicrenderer, const char* str){
 		chr++;
 	}
 }
+
+void Clear(BasicRenderer* basicrenderer, uint32_t color){
+	uint64_t fbBase = (uint64_t)basicrenderer->TargetFramebuffer->BaseAddress;
+	uint64_t bytesPerScanline = basicrenderer->TargetFramebuffer->PixelsPerScanLine * 4;
+	uint64_t fbHeight = basicrenderer->TargetFramebuffer->Height;
+	uint64_t fbSize = basicrenderer->TargetFramebuffer->BufferSize;
+
+	for(int verticalScanLine = 0; verticalScanLine < fbHeight; ++verticalScanLine){
+		uint64_t pixPtrBase = fbBase + (bytesPerScanline * verticalScanLine);
+		for(uint32_t* pixPtr = (uint32_t*)pixPtrBase; pixPtr < (uint32_t*)(pixPtrBase + bytesPerScanline); ++pixPtr){
+			*pixPtr = color;
+		}
+	}
+}
+
+void Next(BasicRenderer* basicrenderer){
+	basicrenderer->CursorPosition->X = 0;
+	basicrenderer->CursorPosition->Y += 16; // Heigth of font
+}
