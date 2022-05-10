@@ -9,6 +9,8 @@
 #include "paging/PageTableManager.h"
 #include "paging/paging.h"
 #include "gdt/gdt.h"
+#include "interrupts/IDT.h"
+#include "interrupts/interrupts.h"
 
 typedef struct {
 	FrameBuffer* framebuffer;
@@ -22,6 +24,13 @@ extern uint64_t _KernelStart;
 extern uint64_t _KernelEnd;
 
 void _start(BootInfo* bootinfo){
+
+	/* START Graphycs */
+	Point CursorPosition = {0, 0};
+	BasicRenderer newRenderer;
+	BasicRendererConstructor(&newRenderer, &CursorPosition, bootinfo->framebuffer, bootinfo->psf1_font);
+	GlobalRenderer = &newRenderer;
+	/* END Graphycs */
 
 	/* START GDT transfer*/
 	GDTDescriptor gdtDescriptor;
@@ -60,16 +69,24 @@ void _start(BootInfo* bootinfo){
 	asm ("mov %0, %%cr3" : : "r" (PML4));
 	/* END prepare Memory */
 
-	/* START Graphycs */
 	memset(bootinfo->framebuffer->BaseAddress, 0, bootinfo->framebuffer->BufferSize); // Clean the screen to black
-	Point CursorPosition = {0, 0};
-	BasicRenderer newRenderer;
-	BasicRendererConstructor(&newRenderer, &CursorPosition, bootinfo->framebuffer, bootinfo->psf1_font);
-	/* END Graphycs */
+
+	/* START interrupts*/
+	IDTR idtr;
+	idtr.Limit =  0x0fff;
+	idtr.Offset = (uint64_t)RequestPage(&GlobalAllocator);
+
+	IDTDescEntry* int_PageFault = (IDTDescEntry*)(idtr.Offset + 0xE * sizeof(IDTDescEntry));
+	SetOffsetIDT(int_PageFault, (uint64_t)PageFault_Handler);
+	int_PageFault->type_attr = IDT_TA_InterruptGate;
+	int_PageFault->selector = 0x08;
+
+	asm("lidt %0" : : "m" (idtr));
+	/* END interrupts*/
 
 	/* START Testing */
 
-	Print(&newRenderer, "Kernel Initialize Successfully");
+	Print(GlobalRenderer, "Kernel Initialize Successfully");
 
 	/* END Testing */
 

@@ -13,3 +13,5 @@ typedef struct {
 void BasicRendererConstructor(BasicRenderer* basicrenderer, Point* cursor, FrameBuffer* framebuffer, PSF1_FONT* psf1_font);
 void PutChar(BasicRenderer* basicrenderer, char chr, unsigned int xOff, unsigned int yOff);
 void Print(BasicRenderer* basicrenderer, const char* str);
+
+extern BasicRenderer* GlobalRenderer;

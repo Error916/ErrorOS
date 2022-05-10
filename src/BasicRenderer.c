@@ -1,5 +1,7 @@
 #include "BasicRenderer.h"
 
+BasicRenderer* GlobalRenderer;
+
 //TODO: use malloc to remove the references to BasicRenderer and Cursor
 void BasicRendererConstructor(BasicRenderer* basicrenderer, Point* cursor, FrameBuffer* framebuffer, PSF1_FONT* psf1_font){
 	basicrenderer->CursorPosition = cursor;
