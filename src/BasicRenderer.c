@@ -23,6 +23,15 @@ void PutChar(BasicRenderer* basicrenderer, char chr, unsigned int xOff, unsigned
 	}
 }
 
+void PutCharS(BasicRenderer* basicrenderer, char chr){
+	PutChar(basicrenderer, chr, basicrenderer->CursorPosition->X, basicrenderer->CursorPosition->Y);
+	basicrenderer->CursorPosition->X += 8;
+	if(basicrenderer->CursorPosition->X + 8 > basicrenderer->TargetFramebuffer->Width){
+		basicrenderer->CursorPosition->X = 0;
+		basicrenderer->CursorPosition->Y += 16;
+	}
+}
+
 void Print(BasicRenderer* basicrenderer, const char* str){
 	char* chr = (char*)str;
 	while(*chr != 0){
@@ -36,7 +45,7 @@ void Print(BasicRenderer* basicrenderer, const char* str){
 	}
 }
 
-void Clear(BasicRenderer* basicrenderer, uint32_t color){
+void Clear(BasicRenderer* basicrenderer){
 	uint64_t fbBase = (uint64_t)basicrenderer->TargetFramebuffer->BaseAddress;
 	uint64_t bytesPerScanline = basicrenderer->TargetFramebuffer->PixelsPerScanLine * 4;
 	uint64_t fbHeight = basicrenderer->TargetFramebuffer->Height;
@@ -45,9 +54,35 @@ void Clear(BasicRenderer* basicrenderer, uint32_t color){
 	for(int verticalScanLine = 0; verticalScanLine < fbHeight; ++verticalScanLine){
 		uint64_t pixPtrBase = fbBase + (bytesPerScanline * verticalScanLine);
 		for(uint32_t* pixPtr = (uint32_t*)pixPtrBase; pixPtr < (uint32_t*)(pixPtrBase + bytesPerScanline); ++pixPtr){
-			*pixPtr = color;
+			*pixPtr = basicrenderer->ClearColor;
 		}
 	}
+}
+
+void ClearChar(BasicRenderer* basicrenderer){
+	if(basicrenderer->CursorPosition->X == 0){
+		basicrenderer->CursorPosition->X = basicrenderer->TargetFramebuffer->Width;
+		basicrenderer->CursorPosition->Y -= 16;
+		if(basicrenderer->CursorPosition->Y < 0) basicrenderer->CursorPosition->Y = 0;
+	}
+
+	unsigned int xOff = basicrenderer->CursorPosition->X;
+	unsigned int yOff = basicrenderer->CursorPosition->Y;
+
+	unsigned int* pixPtr = (unsigned int*) basicrenderer->TargetFramebuffer->BaseAddress;
+	for(unsigned long y = yOff; y < yOff + 16; ++y){
+		for(unsigned long x = xOff - 8; x < xOff; ++x){
+			*(unsigned int*)(pixPtr + x + (y * basicrenderer->TargetFramebuffer->PixelsPerScanLine)) = basicrenderer->ClearColor;
+		}
+	}
+
+	basicrenderer->CursorPosition->X -= 8;
+	if(basicrenderer->CursorPosition->X < 0){
+		basicrenderer->CursorPosition->X = basicrenderer->TargetFramebuffer->Width;
+		basicrenderer->CursorPosition->Y -= 16;
+		if(basicrenderer->CursorPosition->Y < 0) basicrenderer->CursorPosition->Y = 0;
+	}
+
 }
 
 void Next(BasicRenderer* basicrenderer){

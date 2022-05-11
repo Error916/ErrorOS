@@ -1,7 +1,7 @@
 #pragma once
 
 typedef struct {
-	unsigned int X;
-	unsigned int Y;
+	long int X;
+	long int Y;
 } Point;
 

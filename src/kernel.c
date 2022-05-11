@@ -4,6 +4,7 @@
 #include "efiMemory.h"
 #include "memory.h"
 #include "Bitmap.h"
+#include "IO.h"
 #include "paging/PageFrameAllocator.h"
 #include "paging/PageMapIndexer.h"
 #include "paging/PageTableManager.h"
@@ -91,7 +92,20 @@ void _start(BootInfo* bootinfo){
 	int_GPFault->type_attr = IDT_TA_InterruptGate;
 	int_GPFault->selector = 0x08;
 
+	IDTDescEntry* int_KeyboradInt = (IDTDescEntry*)(idtr.Offset + 0x21 * sizeof(IDTDescEntry));
+	SetOffsetIDT(int_KeyboradInt, (uint64_t)KeyboardInt_Handler);
+	int_KeyboradInt->type_attr = IDT_TA_InterruptGate;
+	int_KeyboradInt->selector = 0x08;
+
 	asm("lidt %0" : : "m" (idtr));
+
+	RemapPIC();
+
+	outb(PIC1_DATA, 0b11111101);
+	outb(PIC2_DATA, 0b11111111);
+
+	asm("sti"); //enable our maskable interrupts
+	/* asm("cli"); //disable our maskable interrupts */
 	/* END interrupts*/
 
 	Print(GlobalRenderer, "Kernel Initialize Succesfully");
