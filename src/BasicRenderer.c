@@ -87,5 +87,61 @@ void ClearChar(BasicRenderer* basicrenderer){
 
 void Next(BasicRenderer* basicrenderer){
 	basicrenderer->CursorPosition->X = 0;
-	basicrenderer->CursorPosition->Y += 16; // Heigth of font
+	basicrenderer->CursorPosition->Y += 16; // Height of font
+}
+
+void inline PutPix(BasicRenderer* basicrenderer, uint32_t x, uint32_t y, uint32_t color){
+	*(uint32_t*)((uint64_t)basicrenderer->TargetFramebuffer->BaseAddress + (x * 4) + (y * basicrenderer->TargetFramebuffer->PixelsPerScanLine * 4)) = color;
+}
+
+uint32_t inline GetPix(BasicRenderer* basicrenderer, uint32_t x, uint32_t y){
+	return *(uint32_t*)((uint64_t)basicrenderer->TargetFramebuffer->BaseAddress + (x * 4) + (y * basicrenderer->TargetFramebuffer->PixelsPerScanLine * 4));
+}
+
+void ClearMouseCursor(BasicRenderer* basicrenderer, uint8_t* mouseCursor, Point* position){
+	if(!basicrenderer->MouseDrawn) return;
+
+	int xMax = 16;
+	int yMax = 16;
+	int diffX = basicrenderer->TargetFramebuffer->Width - position->X;
+	int diffY = basicrenderer->TargetFramebuffer->Height - position->Y;
+
+	if(diffX < 16) xMax = diffX;
+	if(diffY < 16) yMax = diffY;
+
+	for(int y = 0; y < yMax; ++y){
+		for(int x = 0; x < xMax; ++x){
+			int bit = y * 16 + x;
+			int byte = bit / 8;
+			if(mouseCursor[byte] & (0b10000000 >> (x % 8))){
+				if(GetPix(basicrenderer, position->X + x, position->Y + y) == basicrenderer->MouseCursorBufferAfter[x + y * 16])
+					PutPix(basicrenderer, position->X + x, position->Y + y, basicrenderer->MouseCursorBuffer[x + y * 16]);
+			}
+		}
+	}
+}
+
+void DrawOverlayMouseCursor(BasicRenderer* basicrenderer, uint8_t* mouseCursor, Point* position, uint32_t color){
+	// NB: we know the cursor is 16 x 16
+	int xMax = 16;
+	int yMax = 16;
+	int diffX = basicrenderer->TargetFramebuffer->Width - position->X;
+	int diffY = basicrenderer->TargetFramebuffer->Height - position->Y;
+
+	if(diffX < 16) xMax = diffX;
+	if(diffY < 16) yMax = diffY;
+
+	for(int y = 0; y < yMax; ++y){
+		for(int x = 0; x < xMax; ++x){
+			int bit = y * 16 + x;
+			int byte = bit / 8;
+			if(mouseCursor[byte] & (0b10000000 >> (x % 8))){
+				basicrenderer->MouseCursorBuffer[x + y * 16] = GetPix(basicrenderer, position->X + x, position->Y + y);
+				PutPix(basicrenderer, position->X + x, position->Y + y, color);
+				basicrenderer->MouseCursorBufferAfter[x + y * 16] = GetPix(basicrenderer, position->X + x, position->Y + y);
+			}
+		}
+	}
+
+	basicrenderer->MouseDrawn = true;
 }

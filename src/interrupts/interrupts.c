@@ -21,6 +21,12 @@ __attribute__((interrupt)) void KeyboardInt_Handler(struct interrupt_frame* fram
 	PIC_EndMaster();
 }
 
+__attribute__((interrupt)) void MouseInt_Handler(struct interrupt_frame* frame){
+	uint8_t MouseData = inb(0x60);
+	HandlePS2Mouse(MouseData);
+	PIC_EndSlave();
+}
+
 void RemapPIC(){
 	uint8_t a1, a2;
 
