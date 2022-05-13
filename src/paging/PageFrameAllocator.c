@@ -33,7 +33,7 @@ void ReadEFIMemoryMap(PageFrameAllocator* pfa, EFI_MEMORY_DESCRIPTOR* mMap, size
 	InitBitmap(pfa, bitmapSize, largestFreeMemSeg);
 
 	// lock bitmap pages
-	LockPages(pfa, pfa->PageBitmap, pfa->PageBitmap->Size / 4096 + 1);
+	LockPages(pfa, pfa->PageBitmap->Buffer, pfa->PageBitmap->Size / 4096 + 1);
 
 	// reserve the reserved/unusable pages
 	for(int i = 0; i < mMapEntries; ++i){

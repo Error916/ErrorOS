@@ -1,4 +1,3 @@
-
 OSNAME = ErrorOS2
 
 GNUEFI = ../gnu-efi
@@ -8,7 +7,7 @@ CC = gcc
 ASMC = nasm
 LD = ld
 
-CFLAGS = -ffreestanding -fshort-wchar -fno-stack-protector
+CFLAGS = -ffreestanding -fshort-wchar -fno-stack-protector -mno-red-zone
 ASMFLAGS =
 LDFLAGS = -T $(LDS) -static -Bsymbolic -nostdlib
 
