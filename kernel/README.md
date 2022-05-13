@@ -1,2 +1,0 @@
-# ErrorOS
-My OS implementation
