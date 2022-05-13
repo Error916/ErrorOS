@@ -20,6 +20,7 @@ typedef struct {
 	EFI_MEMORY_DESCRIPTOR* mMap;
 	uint64_t mMapSize;
 	uint64_t mMapDescSize;
+	void* rsdp;
 } BootInfo;
 
 extern uint64_t _KernelStart;
@@ -107,10 +108,18 @@ void _start(BootInfo* bootinfo){
 	Print(GlobalRenderer, "Kernel Initialize Succesfully");
 
 	/* START Testing */
-
-	while(true){
-		ProcessMousePacket();
-	}
+	Next(GlobalRenderer);
+	Print(GlobalRenderer, u64to_hstring((uint64_t)bootinfo->rsdp));
+	Next(GlobalRenderer);
+	// check to be sure we didn't mess things up
+	PutCharS(GlobalRenderer, *(uint8_t*)bootinfo->rsdp);
+	PutCharS(GlobalRenderer, *((uint8_t*)bootinfo->rsdp + 1));
+	PutCharS(GlobalRenderer, *((uint8_t*)bootinfo->rsdp + 2));
+	PutCharS(GlobalRenderer, *((uint8_t*)bootinfo->rsdp + 3));
+	PutCharS(GlobalRenderer, *((uint8_t*)bootinfo->rsdp + 4));
+	PutCharS(GlobalRenderer, *((uint8_t*)bootinfo->rsdp + 5));
+	PutCharS(GlobalRenderer, *((uint8_t*)bootinfo->rsdp + 6));
+	PutCharS(GlobalRenderer, *((uint8_t*)bootinfo->rsdp + 7));
 
 	/* END Testing */
 

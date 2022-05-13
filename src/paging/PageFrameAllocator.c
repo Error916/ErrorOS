@@ -32,17 +32,20 @@ void ReadEFIMemoryMap(PageFrameAllocator* pfa, EFI_MEMORY_DESCRIPTOR* mMap, size
 
 	InitBitmap(pfa, bitmapSize, largestFreeMemSeg);
 
-	// lock bitmap pages
-	LockPages(pfa, pfa->PageBitmap->Buffer, pfa->PageBitmap->Size / 4096 + 1);
+	ReservePages(pfa, 0, memorySize / 4096 + 1); // look all memory
 
-	// reserve the reserved/unusable pages
+	// unreserve the efiConventionalMemory pages
 	for(int i = 0; i < mMapEntries; ++i){
 		EFI_MEMORY_DESCRIPTOR* desc = (EFI_MEMORY_DESCRIPTOR*)((uint64_t)mMap + (i * mMapDescSize));
-		if(desc->type != 7){
-			ReservePages(pfa, desc->physAddr, desc->numPages);
+		if(desc->type == 7){
+			UnreservePages(pfa, desc->physAddr, desc->numPages);
 		}
 	}
 
+	// reserve 0 -> 0x100000 to be sure to not touch bios stuff
+	ReservePages(pfa, 0, 0x100);
+	// lock bitmap pages
+	LockPages(pfa, pfa->PageBitmap->Buffer, pfa->PageBitmap->Size / 4096 + 1);
 }
 
 // TODO: write a better function that use a little bit of logic

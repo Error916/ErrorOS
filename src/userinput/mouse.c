@@ -51,6 +51,11 @@ bool MousePacketReady = false;
 Point MousePosition;
 Point MousePositionOLD;
 void HandlePS2Mouse(uint8_t data){
+	// TODO: implement an interrupt priority system so that mouse and keybord dont collide and make the mouse outof sink
+	ProcessMousePacket();
+	static bool skip = true;
+	if(skip){ skip = false; return; }
+
 	switch(MouseCycle){
 		case 0:
 			if(MousePacketReady) break;
