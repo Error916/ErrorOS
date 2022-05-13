@@ -121,6 +121,11 @@ void _start(BootInfo* bootinfo){
 	PutCharS(GlobalRenderer, *((uint8_t*)bootinfo->rsdp + 6));
 	PutCharS(GlobalRenderer, *((uint8_t*)bootinfo->rsdp + 7));
 
+	// Here until i fix the sink problem
+	while(true){
+		ProcessMousePacket();
+	}
+
 	/* END Testing */
 
 	while(true);
