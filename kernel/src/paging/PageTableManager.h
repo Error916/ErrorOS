@@ -7,3 +7,5 @@ typedef struct {
 
 void PageTableManagerConst(PageTableManager* ptm, PageTable* PML4Address);
 void MapMemory(PageTableManager* ptm, void* virtualMemory, void* physicalMemory);
+
+extern PageTableManager GlobalPTM;

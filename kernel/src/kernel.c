@@ -13,6 +13,8 @@
 #include "interrupts/IDT.h"
 #include "interrupts/interrupts.h"
 #include "userinput/mouse.h"
+#include "acpi.h"
+#include "pci.h"
 
 typedef struct {
 	FrameBuffer* framebuffer;
@@ -20,7 +22,7 @@ typedef struct {
 	EFI_MEMORY_DESCRIPTOR* mMap;
 	uint64_t mMapSize;
 	uint64_t mMapDescSize;
-	void* rsdp;
+	RSDP2* rsdp;
 } BootInfo;
 
 extern uint64_t _KernelStart;
@@ -31,6 +33,14 @@ void SetIDTGate(IDTR* idtr, void * handler, uint8_t entryOffset, uint8_t type_at
 	SetOffsetIDT(interrupt, (uint64_t)handler);
 	interrupt->type_attr = type_attr;
 	interrupt->selector = selector;
+}
+
+void PrepareACPI(BootInfo* bootinfo){
+	SDTHeader* xsdt = (SDTHeader*)(bootinfo->rsdp->XSDTAddress);
+
+	MCFGHeader* mcfg = (MCFGHeader*)FindTableACPI(xsdt, (char*)"MCFG");
+
+	EnumeratePCI(mcfg);
 }
 
 void _start(BootInfo* bootinfo){
@@ -62,18 +72,17 @@ void _start(BootInfo* bootinfo){
 
 	PageTable* PML4 = (PageTable*)RequestPage(&GlobalAllocator);
 	memset(PML4, 0, 0x1000);
-	PageTableManager pageTableManager;
-	PageTableManagerConst(&pageTableManager, PML4);
+	PageTableManagerConst(&GlobalPTM, PML4);
 
 	for(uint64_t t = 0; t < GetMemorySize(bootinfo->mMap, mMapEntries, bootinfo->mMapDescSize); t+=0x1000){
-		MapMemory(&pageTableManager, (void*)t, (void*)t);
+		MapMemory(&GlobalPTM, (void*)t, (void*)t);
 	}
 
 	uint64_t fbBase = (uint64_t)bootinfo->framebuffer->BaseAddress;
 	uint64_t fbSize = (uint64_t)bootinfo->framebuffer->BufferSize + 0x1000; // overshoot for securrity
 	LockPages(&GlobalAllocator, (void*)fbBase, fbSize / 0x1000 + 1);
 	for(uint64_t t = fbBase; t < fbBase + fbSize; t+=4096){
-		MapMemory(&pageTableManager, (void*)t, (void*)t);
+		MapMemory(&GlobalPTM, (void*)t, (void*)t);
 	}
 
 	asm ("mov %0, %%cr3" : : "r" (PML4));
@@ -105,21 +114,12 @@ void _start(BootInfo* bootinfo){
 	/* asm("cli"); //disable our maskable interrupts */
 	/* END interrupts*/
 
+	/* Will be move to a better place as soon as i finish working on it */
+	PrepareACPI(bootinfo);
+
 	Print(GlobalRenderer, "Kernel Initialize Succesfully");
 
 	/* START Testing */
-	Next(GlobalRenderer);
-	Print(GlobalRenderer, u64to_hstring((uint64_t)bootinfo->rsdp));
-	Next(GlobalRenderer);
-	// check to be sure we didn't mess things up
-	PutCharS(GlobalRenderer, *(uint8_t*)bootinfo->rsdp);
-	PutCharS(GlobalRenderer, *((uint8_t*)bootinfo->rsdp + 1));
-	PutCharS(GlobalRenderer, *((uint8_t*)bootinfo->rsdp + 2));
-	PutCharS(GlobalRenderer, *((uint8_t*)bootinfo->rsdp + 3));
-	PutCharS(GlobalRenderer, *((uint8_t*)bootinfo->rsdp + 4));
-	PutCharS(GlobalRenderer, *((uint8_t*)bootinfo->rsdp + 5));
-	PutCharS(GlobalRenderer, *((uint8_t*)bootinfo->rsdp + 6));
-	PutCharS(GlobalRenderer, *((uint8_t*)bootinfo->rsdp + 7));
 
 	// Here until i fix the sink problem
 	while(true){
