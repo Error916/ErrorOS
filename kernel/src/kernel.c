@@ -15,6 +15,7 @@
 #include "userinput/mouse.h"
 #include "acpi.h"
 #include "pci.h"
+#include "memory/heap.h"
 
 typedef struct {
 	FrameBuffer* framebuffer;
@@ -86,6 +87,8 @@ void _start(BootInfo* bootinfo){
 	}
 
 	asm ("mov %0, %%cr3" : : "r" (PML4));
+
+	InitializeHeap((void*)0x0000100000000000, 0x10);
 	/* END prepare Memory */
 
 	memset(bootinfo->framebuffer->BaseAddress, 0, bootinfo->framebuffer->BufferSize); // Clean the screen to black
@@ -117,8 +120,20 @@ void _start(BootInfo* bootinfo){
 	/* END interrupts*/
 
 	Print(GlobalRenderer, "Kernel Initialize Succesfully");
+	Next(GlobalRenderer);
 
 	/* START Testing */
+
+	Print(GlobalRenderer, u64to_hstring((uint64_t)malloc(0x8000)));
+	Next(GlobalRenderer);
+	void* address = malloc(0x8000);
+	Print(GlobalRenderer, u64to_hstring((uint64_t)address));
+	Next(GlobalRenderer);
+	Print(GlobalRenderer, u64to_hstring((uint64_t)malloc(0x100)));
+	Next(GlobalRenderer);
+	free(address);
+	Print(GlobalRenderer, u64to_hstring((uint64_t)malloc(0x100)));
+	Next(GlobalRenderer);
 
 	// Here until i fix the sink problem
 	while(true){
