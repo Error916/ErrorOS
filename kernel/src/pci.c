@@ -11,9 +11,15 @@ void EnumerateFunction(uint64_t deviceAddress, uint64_t function){
 	if(pciDeviceHeader->DeviceID == 0) return;
 	if(pciDeviceHeader->DeviceID == 0xffff) return;
 
-	Print(GlobalRenderer, u16to_hstring(pciDeviceHeader->VendorID));
-	Print(GlobalRenderer, " ");
-	Print(GlobalRenderer, u16to_hstring(pciDeviceHeader->DeviceID));
+	Print(GlobalRenderer, GetVendorName(pciDeviceHeader->VendorID));
+	Print(GlobalRenderer, " / ");
+	Print(GlobalRenderer, GetDeviceName(pciDeviceHeader->VendorID, pciDeviceHeader->DeviceID));
+	Print(GlobalRenderer, " / ");
+	Print(GlobalRenderer, DeviceClasses[pciDeviceHeader->Class]);
+	Print(GlobalRenderer, " / ");
+	Print(GlobalRenderer, GetSubclassName(pciDeviceHeader->Class, pciDeviceHeader->Subclass));
+	Print(GlobalRenderer, " / ");
+	Print(GlobalRenderer, GetProgIFName(pciDeviceHeader->Class, pciDeviceHeader->Subclass, pciDeviceHeader->ProgIF));
 	Next(GlobalRenderer);
 }
 

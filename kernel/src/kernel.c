@@ -107,15 +107,14 @@ void _start(BootInfo* bootinfo){
 
 	InitPS2Mouse();
 
+	PrepareACPI(bootinfo);
+
 	outb(PIC1_DATA, 0b11111001);
 	outb(PIC2_DATA, 0b11101111);
 
 	asm("sti"); //enable our maskable interrupts
 	/* asm("cli"); //disable our maskable interrupts */
 	/* END interrupts*/
-
-	/* Will be move to a better place as soon as i finish working on it */
-	PrepareACPI(bootinfo);
 
 	Print(GlobalRenderer, "Kernel Initialize Succesfully");
 
