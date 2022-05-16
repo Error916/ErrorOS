@@ -16,6 +16,7 @@
 #include "acpi.h"
 #include "pci.h"
 #include "memory/heap.h"
+#include "scheduling/pit/pit.h"
 
 typedef struct {
 	FrameBuffer* framebuffer;
@@ -103,6 +104,7 @@ void _start(BootInfo* bootinfo){
 	SetIDTGate(&idtr, (void*)GPFault_Handler, 0xd, IDT_TA_InterruptGate, 0x08);
 	SetIDTGate(&idtr, (void*)KeyboardInt_Handler, 0x21, IDT_TA_InterruptGate, 0x08);
 	SetIDTGate(&idtr, (void*)MouseInt_Handler, 0x2c, IDT_TA_InterruptGate, 0x08);
+	SetIDTGate(&idtr, (void*)PITInt_Handler, 0x20, IDT_TA_InterruptGate, 0x08);
 
 	asm("lidt %0" : : "m" (idtr));
 
@@ -112,7 +114,7 @@ void _start(BootInfo* bootinfo){
 
 	PrepareACPI(bootinfo);
 
-	outb(PIC1_DATA, 0b11111001);
+	outb(PIC1_DATA, 0b11111000);
 	outb(PIC2_DATA, 0b11101111);
 
 	asm("sti"); //enable our maskable interrupts
@@ -134,6 +136,13 @@ void _start(BootInfo* bootinfo){
 	free(address);
 	Print(GlobalRenderer, u64to_hstring((uint64_t)malloc(0x100)));
 	Next(GlobalRenderer);
+
+	SetDivisor(65535);
+
+	for(int t = 0; t < 200; ++t){
+		Print(GlobalRenderer, "g");
+		Sleep(10);
+	}
 
 	// Here until i fix the sink problem
 	while(true){
