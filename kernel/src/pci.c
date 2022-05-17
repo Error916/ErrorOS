@@ -1,4 +1,6 @@
 #include "pci.h"
+#include "ahci/ahci.h"
+#include "memory/heap.h"
 
 void EnumerateFunction(uint64_t deviceAddress, uint64_t function){
 	uint64_t offset = function << 12;
@@ -21,6 +23,18 @@ void EnumerateFunction(uint64_t deviceAddress, uint64_t function){
 	Print(GlobalRenderer, " / ");
 	Print(GlobalRenderer, GetProgIFName(pciDeviceHeader->Class, pciDeviceHeader->Subclass, pciDeviceHeader->ProgIF));
 	Next(GlobalRenderer);
+
+	switch(pciDeviceHeader->Class){
+		case 0x01: // mass storage controller
+			switch(pciDeviceHeader->Subclass){
+				case 0x06: // SATA
+					switch(pciDeviceHeader->ProgIF){
+						case 0x01: // AHCI 1.0 device
+							AHCIDriver *ahciDriver = (AHCIDriver*)malloc(sizeof(AHCIDriver));
+							AHCIDriverConstructor(ahciDriver, pciDeviceHeader);
+					}
+			}
+	}
 }
 
 void EnumerateDevice(uint64_t busAddress, uint64_t device){
