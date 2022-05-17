@@ -96,7 +96,7 @@ void LockPages(PageFrameAllocator* pfa, void* address, uint64_t pageCount){
 	}
 }
 
-static void InitBitmap(PageFrameAllocator* pfa, size_t bitmapSize, void* bufferAddress){
+void InitBitmap(PageFrameAllocator* pfa, size_t bitmapSize, void* bufferAddress){
 	pfa->PageBitmap->Size = bitmapSize;
 	pfa->PageBitmap->Buffer = (uint8_t*)bufferAddress;
 	for(int i = 0; i < bitmapSize; ++i){
@@ -104,7 +104,7 @@ static void InitBitmap(PageFrameAllocator* pfa, size_t bitmapSize, void* bufferA
 	}
 }
 
-static void UnreservePage(PageFrameAllocator* pfa, void* address){
+void UnreservePage(PageFrameAllocator* pfa, void* address){
 	uint64_t index = (uint64_t)address / 4096;
 	if(GetBitmap(pfa->PageBitmap, index) == false) return;
 	if(SetBitmap(pfa->PageBitmap, index, false)){
@@ -114,13 +114,13 @@ static void UnreservePage(PageFrameAllocator* pfa, void* address){
 	}
 }
 
-static void UnreservePages(PageFrameAllocator* pfa, void* address, uint64_t pageCount){
+void UnreservePages(PageFrameAllocator* pfa, void* address, uint64_t pageCount){
 	for(int i = 0; i < pageCount; ++i){
 		UnreservePage(pfa, (void*)((uint64_t)address + (i * 4096)));
 	}
 }
 
-static void ReservePage(PageFrameAllocator* pfa, void* address){
+void ReservePage(PageFrameAllocator* pfa, void* address){
 	uint64_t index = (uint64_t)address / 4096;
 	if(GetBitmap(pfa->PageBitmap, index) == true) return;
 	if(SetBitmap(pfa->PageBitmap, index, true)){
@@ -129,7 +129,7 @@ static void ReservePage(PageFrameAllocator* pfa, void* address){
 	}
 }
 
-static void ReservePages(PageFrameAllocator* pfa, void* address, uint64_t pageCount){
+void ReservePages(PageFrameAllocator* pfa, void* address, uint64_t pageCount){
 	for(int i = 0; i < pageCount; ++i){
 		ReservePage(pfa, (void*)((uint64_t)address + (i * 4096)));
 	}

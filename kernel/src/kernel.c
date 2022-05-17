@@ -126,24 +126,6 @@ void _start(BootInfo* bootinfo){
 
 	/* START Testing */
 
-	Print(GlobalRenderer, u64to_hstring((uint64_t)malloc(0x8000)));
-	Next(GlobalRenderer);
-	void* address = malloc(0x8000);
-	Print(GlobalRenderer, u64to_hstring((uint64_t)address));
-	Next(GlobalRenderer);
-	Print(GlobalRenderer, u64to_hstring((uint64_t)malloc(0x100)));
-	Next(GlobalRenderer);
-	free(address);
-	Print(GlobalRenderer, u64to_hstring((uint64_t)malloc(0x100)));
-	Next(GlobalRenderer);
-
-	SetDivisor(65535);
-
-	for(int t = 0; t < 200; ++t){
-		Print(GlobalRenderer, "g");
-		Sleep(10);
-	}
-
 	// Here until i fix the sink problem
 	while(true){
 		ProcessMousePacket();
@@ -151,5 +133,7 @@ void _start(BootInfo* bootinfo){
 
 	/* END Testing */
 
-	while(true);
+	while(true){
+		asm("hlt");
+	}
 }

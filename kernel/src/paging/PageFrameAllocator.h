@@ -21,10 +21,10 @@ void FreePages(PageFrameAllocator* pfa, void* address, uint64_t pageCount);
 void LockPage(PageFrameAllocator* pfa, void* address);
 void LockPages(PageFrameAllocator* pfa, void* address, uint64_t pageCount);
 
-static void InitBitmap(PageFrameAllocator* pfa, size_t bitmapSize, void* bufferAddress);
-static void ReservePage(PageFrameAllocator* pfa, void* address);
-static void ReservePages(PageFrameAllocator* pfa, void* address, uint64_t pageCount);
-static void UnreservePage(PageFrameAllocator* pfa, void* address);
-static void UnreservePages(PageFrameAllocator* pfa, void* address, uint64_t pageCount);
+void InitBitmap(PageFrameAllocator* pfa, size_t bitmapSize, void* bufferAddress);
+void ReservePage(PageFrameAllocator* pfa, void* address);
+void ReservePages(PageFrameAllocator* pfa, void* address, uint64_t pageCount);
+void UnreservePage(PageFrameAllocator* pfa, void* address);
+void UnreservePages(PageFrameAllocator* pfa, void* address, uint64_t pageCount);
 
 extern PageFrameAllocator GlobalAllocator;

@@ -111,6 +111,7 @@ void CombineForward(HeapSegHdr* heapSegHdr){
 		heapSegHdr->next->next->last = heapSegHdr;
 	}
 
+	heapSegHdr->next = heapSegHdr->next->next;
 	heapSegHdr->length = heapSegHdr->length + heapSegHdr->next->length + sizeof(HeapSegHdr);
 }
 

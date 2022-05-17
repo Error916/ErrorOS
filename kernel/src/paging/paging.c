@@ -10,7 +10,7 @@ void SetFlagPDE(PageDirectoryEntry* pde, PT_Flag flag, bool enabled){
 
 bool GetFlagPDE(PageDirectoryEntry* pde, PT_Flag flag){
 	uint64_t  bitSelector = (uint64_t)1 << flag;
-	return pde->Value & bitSelector > 0 ? true : false;
+	return ((pde->Value & bitSelector) > 0) ? true : false;
 }
 
 void SetAddressPDE(PageDirectoryEntry* pde, uint64_t address){

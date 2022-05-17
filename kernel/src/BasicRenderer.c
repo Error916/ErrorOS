@@ -49,7 +49,7 @@ void Clear(BasicRenderer* basicrenderer){
 	uint64_t fbBase = (uint64_t)basicrenderer->TargetFramebuffer->BaseAddress;
 	uint64_t bytesPerScanline = basicrenderer->TargetFramebuffer->PixelsPerScanLine * 4;
 	uint64_t fbHeight = basicrenderer->TargetFramebuffer->Height;
-	uint64_t fbSize = basicrenderer->TargetFramebuffer->BufferSize;
+	/* uint64_t fbSize = basicrenderer->TargetFramebuffer->BufferSize; */
 
 	for(int verticalScanLine = 0; verticalScanLine < fbHeight; ++verticalScanLine){
 		uint64_t pixPtrBase = fbBase + (bytesPerScanline * verticalScanLine);
