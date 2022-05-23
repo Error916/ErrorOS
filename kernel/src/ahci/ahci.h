@@ -44,7 +44,7 @@ typedef enum {
 	FIS_TYPE_DEV_BITS = 0xA1,
 } FIS_TYPE;
 
-typedef struct {
+typedef volatile struct {
 	uint32_t commandListBase;
         uint32_t commandListBaseUpper;
         uint32_t fisBaseAddress;
@@ -66,7 +66,7 @@ typedef struct {
         uint32_t vendor[4];
 } HBAPort;
 
-typedef struct {
+typedef volatile struct {
 	uint32_t hostCapability;
 	uint32_t globalHostControl;
 	uint32_t interrupt;
@@ -96,7 +96,7 @@ typedef struct {
 	uint8_t portMultiplier:4;
 
 	uint16_t prdtLength;
-	uint32_t prdbCount;
+	volatile uint32_t prdbCount;
 	uint32_t commandTableBaseAddress;
 	uint32_t commandTableBaseAddressUpper;
 	uint32_t rsv1[4];

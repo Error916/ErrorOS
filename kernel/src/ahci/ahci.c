@@ -163,7 +163,7 @@ bool AHCIPortRead(Port* port, uint64_t sector, uint32_t sectorCount, void* buffe
 
 	/* blocking function untill we make the os asyncronus */
 	while(true){
-		if((port->hbaPort->commandIssue == 0)) break;
+		if(port->hbaPort->commandIssue == 0) break;
 		if(port->hbaPort->interruptStatus & HBA_PxIS_TFES) return false; // read insucesfull
 	}
 
